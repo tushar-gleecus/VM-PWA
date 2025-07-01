@@ -30,3 +30,10 @@ export async function updateEntry(id, updates) {
   const updatedEntry = { ...entry, ...updates };
   await db.put(STORE_NAME, updatedEntry);
 }
+
+export const clearAllEntries = async () => {
+  const db = await getDb();
+  const tx = db.transaction('history', 'readwrite');
+  await tx.objectStore('history').clear();
+  await tx.done;
+};

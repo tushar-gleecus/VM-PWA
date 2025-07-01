@@ -19,26 +19,44 @@ export default function FormScreen() {
 
     if (navigator.onLine) {
       try {
-        const uploadPromises = Array.from(files).map(async (file, index) => {
-          const filePath = `${id}/pic-${index}`;
-          const { error } = await supabase.storage.from('images').upload(filePath, file);
+        const uploadPromises = files.map(async (file, index) => {
+          const filePath = `${id}/media-${index}`;
+          const { error } = await supabase.storage
+            .from('images')
+            .upload(filePath, file);
           if (error) throw error;
+
           return `https://uisclambrgfshwjuwwyw.supabase.co/storage/v1/object/public/images/${filePath}`;
         });
+
         uploadedURLs = await Promise.all(uploadPromises);
 
-        await supabase.from('history').insert([{
-          id, testcase, teststep, pictures: uploadedURLs, added_on, synced: true
-        }]);
+        await supabase.from('history').insert([
+          {
+            id,
+            testcase,
+            teststep,
+            pictures: uploadedURLs,
+            added_on,
+            synced: true,
+          },
+        ]);
       } catch (err) {
         console.error('Upload failed:', err);
         synced = false;
       }
     }
 
-    const entry = { id, testcase, teststep, pictures: uploadedURLs, added_on, synced };
-    await addLocalEntry(entry);
+    const entry = {
+      id,
+      testcase,
+      teststep,
+      pictures: navigator.onLine ? uploadedURLs : files,
+      added_on,
+      synced,
+    };
 
+    await addLocalEntry(entry);
     setTeststep('');
     setFiles([]);
     navigate('/history');
@@ -51,21 +69,21 @@ export default function FormScreen() {
   };
 
   return (
-    <div className="min-h-screen bg-[#f0fcff]">
+    <div className="min-h-screen bg-[#f0fdff]">
       <header className="flex items-center justify-between p-4 shadow bg-white">
         <img src={logo} alt="Logo" className="h-8" />
         <button
           onClick={() => navigate('/history')}
-          className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
+          className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-1 rounded"
         >
           History
         </button>
       </header>
 
-      <h1 className="text-2xl font-semibold text-center mt-6 text-gray-800">Test Steps</h1>
+      <h1 className="text-center text-2xl font-semibold my-6">Test Steps</h1>
 
-      <main className="flex justify-center mt-6">
-        <div className="w-full max-w-md p-6 bg-[#e6f7fd] shadow rounded">
+      <main className="flex justify-center">
+        <div className="w-full max-w-md p-6 bg-blue-50 shadow rounded">
           <div className="mb-4">
             <label className="block mb-1 font-medium">Test Case</label>
             <select
@@ -91,30 +109,36 @@ export default function FormScreen() {
           </div>
 
           <div className="mb-4">
-            <label className="block mb-1 font-medium">Add Pictures</label>
+            <label className="block mb-1 font-medium">Add Pictures / Videos</label>
             <input
               type="file"
               multiple
-              accept="image/*"
+              accept="image/*,video/*"
+              capture="environment"
               onChange={(e) => setFiles([...e.target.files])}
               className="mb-2"
             />
             <div className="flex flex-wrap gap-2">
-              {files.map((file, index) => (
-                <div key={index} className="relative">
-                  <img
-                    src={URL.createObjectURL(file)}
-                    alt={file.name}
-                    className="w-20 h-20 object-cover border rounded"
-                  />
-                  <button
-                    onClick={() => removeFile(index)}
-                    className="absolute top-0 right-0 text-red-600 hover:text-red-800 bg-white rounded-full"
-                  >
-                    &times;
-                  </button>
-                </div>
-              ))}
+              {files.map((file, index) => {
+                const url = URL.createObjectURL(file);
+                const isVideo = file.type.startsWith('video/');
+
+                return (
+                  <div key={index} className="relative">
+                    {isVideo ? (
+                      <video src={url} controls className="w-20 h-20 border rounded" />
+                    ) : (
+                      <img src={url} alt={file.name} className="w-20 h-20 object-cover border rounded" />
+                    )}
+                    <button
+                      onClick={() => removeFile(index)}
+                      className="absolute top-0 right-0 text-red-600 hover:text-red-800 bg-white rounded-full"
+                    >
+                      &times;
+                    </button>
+                  </div>
+                );
+              })}
             </div>
           </div>
 
