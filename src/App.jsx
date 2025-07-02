@@ -1,15 +1,19 @@
-// App.jsx
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import HomeScreen from './components/HomeScreen';
 import FormScreen from './components/FormScreen';
 import HistoryScreen from './components/HistoryScreen';
 
-export default function App() {
+function App() {
   return (
-    <BrowserRouter>
+    <Router>
       <Routes>
-        <Route path="/" element={<FormScreen />} />
+        {/* 👇 This makes HomeScreen the default route */}
+        <Route path="/" element={<HomeScreen />} />
+        <Route path="/form" element={<FormScreen />} />
         <Route path="/history" element={<HistoryScreen />} />
       </Routes>
-    </BrowserRouter>
+    </Router>
   );
 }
+
+export default App;
