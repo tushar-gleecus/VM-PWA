@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import logo from '../assets/logo.png';
+import logo from '../assets/logo.svg';
 
 const HomeScreen = () => {
   const navigate = useNavigate();
@@ -18,14 +18,14 @@ const HomeScreen = () => {
   ];
 
   const cards = [
-    { id: 1348, title: 'Dynamics 365 Dashboard Monitor-2023', status: 'Ready' },
-    { id: 1357, title: 'Verify: Action Search', status: 'Ready to be Tested' },
-    { id: 1444, title: 'Verify: Create BOM', status: 'Verified' },
-    { id: 1385, title: 'Verify: Dynamics 365 Search Result Export', status: 'Approved' },
-    { id: 1402, title: 'Module Workflow Creation-2023', status: 'Draft' },
-    { id: 1391, title: 'CleanRoom Monitor Check', status: 'Approved' },
-    { id: 1320, title: 'Verify: Dynamics 365 Dashboard Check', status: 'Ready' },
-    { id: 1366, title: 'Verify: Sales Agreement Fulfillment', status: 'Ready to be Tested' },
+    { id: 1348, title: 'Dynamics 365 Dashboard Monitor-2023', status: 'Draft' },
+    { id: 1357, title: 'Verify: Action Search', status: 'Ready for Review' },
+    { id: 1444, title: 'Verify: Create BOM', status: 'Ready for Test' },
+    { id: 1385, title: 'Verify: Dynamics 365 Search Result Export', status: 'Tested' },
+    { id: 1402, title: 'Module Workflow Creation-2023', status: 'Approved' },
+    { id: 1391, title: 'CleanRoom Monitor Check', status: 'Verified' },
+    { id: 1320, title: 'Verify: Dynamics 365 Dashboard Check', status: 'Draft' },
+    { id: 1366, title: 'Verify: Sales Agreement Fulfillment', status: 'Ready for Test' },
   ];
 
   const handleCardClick = (title) => {
@@ -35,7 +35,7 @@ const HomeScreen = () => {
     navigate('/form');
   };
 
-  return (
+return (
     <div className="min-h-screen bg-blue-50 p-4">
       <div className="max-w-5xl mx-auto">
         <div className="flex justify-between items-center mb-4">
