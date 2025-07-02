@@ -3,7 +3,8 @@ import ReactDOM from 'react-dom/client';
 import App from './App.jsx';
 import './index.css';
 
-ReactDOM.createRoot(document.getElementById('root')).render(
+const root = ReactDOM.createRoot(document.getElementById('root'));
+root.render(
   <React.StrictMode>
     <App />
   </React.StrictMode>
@@ -11,8 +12,10 @@ ReactDOM.createRoot(document.getElementById('root')).render(
 
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
-    navigator.serviceWorker.register('/service-worker.js')
-      .then(reg => console.log('✅ Service Worker registered:', reg))
-      .catch(err => console.error('❌ Service Worker registration failed:', err));
+    navigator.serviceWorker.register('/service-worker.js').then(() => {
+      console.log('Service Worker registered');
+    }).catch((err) => {
+      console.error('SW registration failed:', err);
+    });
   });
 }

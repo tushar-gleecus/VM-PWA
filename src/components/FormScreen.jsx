@@ -1,80 +1,172 @@
-import React, { useState } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
+import React, { useEffect, useState } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
+import { supabase } from '../supabaseClient';
+import { addLocalEntry } from '../localStore';
+
+const testCaseOptions = [
+  'Dynamics 365 Dashboard Monitor-2023',
+  'Verify: Create BOM',
+  'Module Workflow Creation-2023',
+  'Verify: Dynamics 365 Dashboard Check',
+  'Verify: Action Search',
+  'Verify: Dynamics 365 Search Result Export',
+  'CleanRoom Monitor Check',
+  'Verify: Sales Agreement Fulfillment'
+];
 
 const FormScreen = () => {
   const navigate = useNavigate();
   const location = useLocation();
+  const selectedTestCase = location.state?.testcase || '';
 
-  const selectedCloud = location.state?.selectedCloud || "CloudMaster365 for Dynamics365 F&O";
-  const defaultTestCase = location.state?.selectedTestCase || "";
+  const [testcase, setTestcase] = useState(selectedTestCase);
+  const [teststep, setTeststep] = useState('');
+  const [imageFiles, setImageFiles] = useState([]);
+  const [videoFiles, setVideoFiles] = useState([]);
+  const [recognition, setRecognition] = useState(null);
 
-  const testCaseOptions = [
-    "Dynamics 365 Dashboard Monitor-2023",
-    "Module Workflow Creation-2023",
-    "Verify: Action Search",
-    "CleanRoom Monitor Check",
-    "Verify: Create BOM",
-    "Verify: Dynamics 365 Dashboard Check",
-    "Verify: Dynamics 365 Search Result Export",
-    "Verify: Sales Agreement Fulfillment"
-  ];
+  const handleImageChange = (e) => setImageFiles([...e.target.files]);
+  const handleVideoChange = (e) => setVideoFiles([...e.target.files]);
 
-  const [selectedTestCase, setSelectedTestCase] = useState(defaultTestCase);
-  const [testStep, setTestStep] = useState("");
-  const [files, setFiles] = useState([]);
-
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    // Add submission logic here
+  const openCamera = (type) => {
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = type === 'image' ? 'image/*' : 'video/*';
+    input.capture = 'environment';
+    input.onchange = type === 'image' ? handleImageChange : handleVideoChange;
+    input.click();
   };
 
+  const uploadMedia = async (files) => {
+    const uploadedURLs = [];
+    for (const file of files) {
+      const filePath = `${Date.now()}-${file.name}`;
+      const { error } = await supabase.storage.from('vm-media').upload(filePath, file);
+      if (error) throw error;
+      uploadedURLs.push(filePath);
+    }
+    return uploadedURLs;
+  };
+
+  const handleSubmit = async () => {
+    const isOnline = navigator.onLine;
+    const submission = {
+      id: Date.now(),
+      testcase,
+      teststep,
+      imageFiles: [],
+      videoFiles: [],
+      createdAt: new Date().toISOString(),
+      status: isOnline ? 'Synced' : 'Pending',
+    };
+
+    if (isOnline) {
+      try {
+        submission.imageFiles = await uploadMedia(imageFiles);
+        submission.videoFiles = await uploadMedia(videoFiles);
+      } catch (e) {
+        console.error('Upload failed:', e.message);
+        submission.status = 'Pending';
+      }
+    } else {
+      submission.imageFiles = imageFiles;
+      submission.videoFiles = videoFiles;
+    }
+
+    await addLocalEntry(submission);
+    navigate('/history');
+  };
+
+  const startRecognition = () => {
+    if (!('webkitSpeechRecognition' in window)) {
+      alert('Speech recognition not supported.');
+      return;
+    }
+    const recog = new window.webkitSpeechRecognition();
+    recog.lang = 'en-US';
+    recog.continuous = false;
+    recog.interimResults = false;
+
+    recog.onresult = (event) => {
+      const transcript = event.results[0][0].transcript;
+      setTeststep((prev) => prev + ' ' + transcript);
+    };
+
+    recog.onerror = (e) => console.error('Speech error', e);
+    recog.start();
+    setRecognition(recog);
+  };
+
+  useEffect(() => {
+    if (selectedTestCase) {
+      setTestcase(selectedTestCase);
+    }
+  }, [selectedTestCase]);
+
   return (
-    <div className="min-h-screen bg-blue-50 p-4">
-      <div className="flex justify-between items-center mb-4">
-        <img src="/logo.png" alt="VM Logo" className="h-8" />
-        <button className="bg-blue-500 text-white px-4 py-1 rounded" onClick={() => navigate('/history')}>
-          History
-        </button>
-      </div>
-
-      <h2 className="text-lg font-semibold text-center mb-4 max-w-md mx-auto">{selectedCloud}</h2>
-
-
-      <form onSubmit={handleSubmit} className="bg-white max-w-md mx-auto p-6 rounded shadow">
-        <div className="mb-4">
-          <label className="block mb-1 font-medium">Test Case</label>
-          <select
-            value={selectedTestCase}
-            onChange={(e) => setSelectedTestCase(e.target.value)}
-            className="w-full p-2 border border-gray-300 rounded"
-          >
-            <option value="">Select a test case</option>
-            {testCaseOptions.map((opt, idx) => (
-              <option key={idx} value={opt}>{opt}</option>
-            ))}
-          </select>
+    <div className="min-h-screen flex items-center justify-center bg-blue-50">
+      <div className="bg-white p-6 rounded-xl shadow-md w-full max-w-md">
+        <div className="flex justify-between items-center mb-2">
+          <img src="/logo.png" alt="Logo" className="h-8" onClick={() => navigate('/')} style={{ cursor: 'pointer' }} />
+          <button className="text-sm text-blue-600 hover:underline" onClick={() => navigate('/history')}>
+            View History
+          </button>
         </div>
 
-        <div className="mb-4">
-          <label className="block mb-1 font-medium">Test Step</label>
+        <h2 className="text-lg font-semibold text-center mb-4">
+          CloudMaster365 for Dynamics365 F&O
+        </h2>
+
+        <label className="block text-sm font-medium">Test Case</label>
+        <select
+          value={testcase}
+          onChange={(e) => setTestcase(e.target.value)}
+          className="w-full p-2 border rounded mb-2"
+        >
+          {[testcase, ...testCaseOptions.filter((opt) => opt !== testcase)].map((option, idx) => (
+            <option key={idx} value={option}>{option}</option>
+          ))}
+        </select>
+
+        <label className="block text-sm font-medium">Test Step</label>
+        <div className="relative">
           <textarea
-            value={testStep}
-            onChange={(e) => setTestStep(e.target.value)}
-            className="w-full p-2 border border-gray-300 rounded"
-            rows={3}
-            placeholder="Enter test step"
+            value={teststep}
+            onChange={(e) => setTeststep(e.target.value)}
+            className="w-full p-2 border rounded pr-10"
           />
+          <button type="button" className="absolute right-2 top-2 text-gray-500" onClick={startRecognition}>
+            🎤
+          </button>
         </div>
 
-        <div className="mb-4">
-          <label className="block mb-1 font-medium">Add Pictures / Videos</label>
-          <input type="file" multiple onChange={(e) => setFiles(e.target.files)} />
+        <div className="mt-4">
+          <label className="block text-sm font-medium">Upload Pictures</label>
+          <div className="flex items-center gap-2">
+            <input type="file" accept="image/*" multiple onChange={handleImageChange} />
+            <button onClick={() => openCamera('image')}>
+              📷
+            </button>
+          </div>
         </div>
 
-        <button type="submit" className="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700">
+        <div className="mt-4">
+          <label className="block text-sm font-medium">Upload Videos</label>
+          <div className="flex items-center gap-2">
+            <input type="file" accept="video/*" multiple onChange={handleVideoChange} />
+            <button onClick={() => openCamera('video')}>
+              🎥
+            </button>
+          </div>
+        </div>
+
+        <button
+          className="mt-6 w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700"
+          onClick={handleSubmit}
+        >
           Submit
         </button>
-      </form>
+      </div>
     </div>
   );
 };

@@ -1,31 +1,32 @@
 import { openDB } from 'idb';
 
-export const dbPromise = openDB('validation-master-db', 1, {
-  upgrade(db) {
-    db.createObjectStore('history', { keyPath: 'id' });
-  },
-});
+const DB_NAME = 'submission-db';
+const STORE_NAME = 'pending';
 
-export async function addHistory(entry) {
-  const db = await dbPromise;
-  await db.put('history', entry);
+export async function getDB() {
+  return openDB(DB_NAME, 1, {
+    upgrade(db) {
+      if (!db.objectStoreNames.contains(STORE_NAME)) {
+        db.createObjectStore(STORE_NAME, { autoIncrement: true });
+      }
+    }
+  });
 }
 
-export async function getAllPending() {
-  const db = await dbPromise;
-  return (await db.getAll('history')).filter(e => !e.synced);
+export async function saveToLocalDB(data) {
+  const db = await getDB();
+  await db.add(STORE_NAME, data);
 }
 
-export async function markSynced(id) {
-  const db = await dbPromise;
-  const item = await db.get('history', id);
-  if (item) {
-    item.synced = true;
-    await db.put('history', item);
+export async function getLocalSubmissions() {
+  const db = await getDB();
+  return await db.getAll(STORE_NAME);
+}
+
+export async function clearLocalSubmissions() {
+  const db = await getDB();
+  const keys = await db.getAllKeys(STORE_NAME);
+  for (const key of keys) {
+    await db.delete(STORE_NAME, key);
   }
-}
-
-export async function getAllEntries() {
-  const db = await dbPromise;
-  return await db.getAll('history');
 }

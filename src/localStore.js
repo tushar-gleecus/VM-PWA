@@ -13,6 +13,12 @@ async function getDB() {
   });
 }
 
+// Save entry locally (used in FormScreen)
+export async function saveSubmissionLocally(entry) {
+  const db = await getDB();
+  await db.put(STORE_NAME, entry);
+}
+
 export async function addLocalEntry(entry) {
   const db = await getDB();
   await db.put(STORE_NAME, entry);
@@ -31,9 +37,9 @@ export async function updateEntry(id, updates) {
   await db.put(STORE_NAME, updatedEntry);
 }
 
-export const clearAllEntries = async () => {
-  const db = await getDb();
-  const tx = db.transaction('history', 'readwrite');
-  await tx.objectStore('history').clear();
+export async function clearAllEntries() {
+  const db = await getDB(); // FIXED typo from getDb()
+  const tx = db.transaction(STORE_NAME, 'readwrite');
+  await tx.objectStore(STORE_NAME).clear();
   await tx.done;
-};
+}

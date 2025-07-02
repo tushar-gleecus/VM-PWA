@@ -1,52 +1,96 @@
-import React from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
+import React, { useEffect, useState } from 'react';
+import { getAllEntries } from '../localStore';
+import { useNavigate } from 'react-router-dom';
+import { supabase } from '../supabaseClient';
 
 const HistoryScreen = () => {
+  const [entries, setEntries] = useState([]);
   const navigate = useNavigate();
-  const location = useLocation();
-  const selectedCloud = location.state?.selectedCloud || "Test Steps";
 
-  const dummyData = [
-    { testCase: "Run basic start/stop operations", testStep: "hh", picture: "logo.png", addedOn: "7/2/2025, 12:33:16 PM", status: "Synced" },
-    { testCase: "Run basic start/stop operations", testStep: "fhgfh", picture: "react.svg", addedOn: "7/2/2025, 12:33:00 PM", status: "Synced" },
-  ];
+  useEffect(() => {
+    loadEntries();
+  }, []);
+
+  const loadEntries = async () => {
+    const data = await getAllEntries();
+    setEntries(data.sort((a, b) => b.id - a.id));
+  };
+
+  const getPublicUrl = (path) => {
+    const { data } = supabase.storage.from('vm-media').getPublicUrl(path);
+    return data.publicUrl;
+  };
 
   return (
     <div className="min-h-screen bg-blue-50 p-4">
-      <div className="flex justify-between items-center mb-4">
-        <img src="/logo.png" alt="VM Logo" className="h-8" />
-        <button className="bg-blue-500 text-white px-4 py-1 rounded" onClick={() => navigate('/')}>
-          Go back
-        </button>
-      </div>
+      <div className="max-w-5xl mx-auto bg-white rounded-xl shadow-md p-6">
+        <div className="flex justify-between items-center mb-4">
+          <img
+            src="/logo.png"
+            alt="Logo"
+            className="h-8 cursor-pointer"
+            onClick={() => navigate('/')}
+          />
+          <button className="text-blue-600 underline" onClick={() => navigate('/form')}>
+            Back to Form
+          </button>
+        </div>
 
-      <h2 className="text-2xl font-semibold text-center mb-6">{selectedCloud}</h2>
+        <h2 className="text-xl font-bold mb-4 text-center">CloudMaster365 for Dynamics365 F&O</h2>
 
-      <div className="bg-white max-w-5xl mx-auto p-4 rounded shadow">
-        <table className="w-full table-auto">
-          <thead>
-            <tr className="text-left border-b">
-              <th className="p-2">Testcase</th>
-              <th className="p-2">Teststep</th>
-              <th className="p-2">Pictures</th>
-              <th className="p-2">Added on</th>
-              <th className="p-2">Sync Status</th>
-            </tr>
-          </thead>
-          <tbody>
-            {dummyData.map((item, index) => (
-              <tr key={index} className="border-b">
-                <td className="p-2">{item.testCase}</td>
-                <td className="p-2">{item.testStep}</td>
-                <td className="p-2">
-                  <img src={`/${item.picture}`} alt="thumb" className="h-6" />
-                </td>
-                <td className="p-2">{item.addedOn}</td>
-                <td className="p-2 text-green-600">{item.status}</td>
+        <div className="overflow-x-auto">
+          <table className="min-w-full border">
+            <thead>
+              <tr className="bg-blue-100">
+                <th className="p-2 border">Test Case</th>
+                <th className="p-2 border">Test Step</th>
+                <th className="p-2 border">Pictures</th>
+                <th className="p-2 border">Videos</th>
+                <th className="p-2 border">Added On</th>
+                <th className="p-2 border">Status</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {entries.map((entry) => (
+                <tr key={entry.id} className="text-center">
+                  <td className="p-2 border">{entry.testcase}</td>
+                  <td className="p-2 border">{entry.teststep}</td>
+                  <td className="p-2 border">
+                    {entry.imageFiles?.map((img, i) => (
+                      <img
+                        key={i}
+                        src={typeof img === 'string' ? getPublicUrl(img) : URL.createObjectURL(img)}
+                        alt="thumb"
+                        className="h-12 mx-auto"
+                      />
+                    ))}
+                  </td>
+                  <td className="p-2 border">
+                    {entry.videoFiles?.map((vid, i) => (
+                      <video
+                        key={i}
+                        src={typeof vid === 'string' ? getPublicUrl(vid) : URL.createObjectURL(vid)}
+                        controls
+                        className="h-12 mx-auto"
+                      />
+                    ))}
+                  </td>
+                  <td className="p-2 border">{new Date(entry.createdAt).toLocaleString()}</td>
+                  <td className="p-2 border">
+                    <span className={entry.status === 'Synced' ? 'text-green-600' : 'text-orange-500'}>
+                      {entry.status}
+                    </span>
+                  </td>
+                </tr>
+              ))}
+              {entries.length === 0 && (
+                <tr>
+                  <td colSpan="6" className="text-center p-4 text-gray-500">No submissions found.</td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>
   );

@@ -1,83 +1,85 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import logo from '../assets/logo.png';
 
 const HomeScreen = () => {
   const navigate = useNavigate();
+  const [selectedProject, setSelectedProject] = useState('CloudMaster365 for Dynamics365 F&O');
+  const [selectedCategory, setSelectedCategory] = useState('Test Cases');
 
-  const cloudOptions = [
-    "CloudMaster 365 for BPA Solutions",
-    "CloudMaster for Thermo Fisher LIMS",
-    "CloudMaster365 for Dynamics365 F&O"
+  const projectOptions = [
+    'CloudMaster 365 for BPA Solutions',
+    'CloudMaster for Thermo Fisher LIMS',
+    'CloudMaster365 for Dynamics365 F&O'
   ];
 
-  const testCards = [
-    { number: 1348, title: "Dynamics 365 Dashboard Monitor-2023", status: "Ready" },
-    { number: 1402, title: "Module Workflow Creation-2023", status: "Draft" },
-    { number: 1357, title: "Verify: Action Search", status: "Ready to be Tested" },
-    { number: 1391, title: "CleanRoom Monitor Check", status: "Approved" },
-    { number: 1444, title: "Verify: Create BOM", status: "Verified" },
-    { number: 1320, title: "Verify: Dynamics 365 Dashboard Check", status: "Ready" },
-    { number: 1385, title: "Verify: Dynamics 365 Search Result Export", status: "Approved" },
-    { number: 1366, title: "Verify: Sales Agreement Fulfillment", status: "Ready to be Tested" }
+  const testCaseOptions = [
+    'Requirements', 'Releases', 'Documents', 'Test Cases', 'Test Sets', 'Risks', 'Tasks', 'Incidents'
   ];
 
-  const [cloudOption, setCloudOption] = useState("CloudMaster365 for Dynamics365 F&O");
-  const [testCaseOption] = useState("Test Case");
+  const cards = [
+    { id: 1348, title: 'Dynamics 365 Dashboard Monitor-2023', status: 'Ready' },
+    { id: 1357, title: 'Verify: Action Search', status: 'Ready to be Tested' },
+    { id: 1444, title: 'Verify: Create BOM', status: 'Verified' },
+    { id: 1385, title: 'Verify: Dynamics 365 Search Result Export', status: 'Approved' },
+    { id: 1402, title: 'Module Workflow Creation-2023', status: 'Draft' },
+    { id: 1391, title: 'CleanRoom Monitor Check', status: 'Approved' },
+    { id: 1320, title: 'Verify: Dynamics 365 Dashboard Check', status: 'Ready' },
+    { id: 1366, title: 'Verify: Sales Agreement Fulfillment', status: 'Ready to be Tested' },
+  ];
 
   const handleCardClick = (title) => {
-    navigate('/form', {
-      state: {
-        selectedCloud: cloudOption,
-        selectedTestCase: title
-      }
-    });
-  };
-
-  const goToHistory = () => {
-    navigate('/history', {
-      state: { selectedCloud: cloudOption }
-    });
+    localStorage.setItem('selectedCardTitle', title);
+    localStorage.setItem('selectedProject', selectedProject);
+    localStorage.setItem('selectedCategory', selectedCategory);
+    navigate('/form');
   };
 
   return (
     <div className="min-h-screen bg-blue-50 p-4">
-      <div className="flex justify-between items-center mb-4">
-        <img src="/logo.png" alt="VM Logo" className="h-8" />
-        <button className="bg-blue-500 text-white px-4 py-1 rounded" onClick={goToHistory}>
-          History
-        </button>
-      </div>
-
-      <h2 className="text-xl font-semibold mb-4">Welcome back, Dan</h2>
-
-      <div className="flex flex-col sm:flex-row sm:space-x-4 space-y-2 sm:space-y-0 mb-6">
-        <select
-          value={cloudOption}
-          onChange={(e) => setCloudOption(e.target.value)}
-          className="p-2 border border-gray-300 rounded"
-        >
-          {cloudOptions.map(opt => (
-            <option key={opt} value={opt}>{opt}</option>
-          ))}
-        </select>
-
-        <select value={testCaseOption} disabled className="p-2 border border-gray-300 rounded">
-          <option>Test Case</option>
-        </select>
-      </div>
-
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        {testCards.map((card, idx) => (
-          <div
-            key={idx}
-            className="bg-white border rounded p-4 shadow cursor-pointer hover:bg-blue-100"
-            onClick={() => handleCardClick(card.title)}
+      <div className="max-w-5xl mx-auto">
+        <div className="flex justify-between items-center mb-4">
+          <img src={logo} alt="Logo" className="h-10 cursor-pointer" onClick={() => navigate('/')} />
+        </div>
+        <h2 className="text-lg font-semibold text-center mb-2">Welcome back, Dan</h2>
+        <div className="flex flex-col sm:flex-row gap-2 justify-center items-center mb-4">
+          <select
+            value={selectedProject}
+            onChange={(e) => setSelectedProject(e.target.value)}
+            className="border p-2 rounded w-full sm:w-80"
           >
-            <h3 className="font-semibold mb-1">Test Case #{card.number}</h3>
-            <p className="text-gray-800 mb-1">{card.title}</p>
-            <p className="text-sm text-blue-600">{card.status}</p>
-          </div>
-        ))}
+            {projectOptions.map((project) => (
+              <option key={project} value={project}>{project}</option>
+            ))}
+          </select>
+          <select
+            value={selectedCategory}
+            onChange={(e) => setSelectedCategory(e.target.value)}
+            className="border p-2 rounded w-full sm:w-60"
+          >
+            {testCaseOptions.map((tc) => (
+              <option key={tc} value={tc}>{tc}</option>
+            ))}
+          </select>
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          {cards.map((card) => (
+            <div
+              key={card.id}
+              onClick={() => handleCardClick(card.title)}
+              className="cursor-pointer bg-white shadow p-4 rounded hover:bg-gray-50"
+            >
+              <p className="font-semibold">Test Case #{card.id}</p>
+              <p>{card.title}</p>
+              <p className="text-sm mt-1" style={{ color: card.status.includes('Ready') ? 'blue' : card.status === 'Approved' ? 'green' : 'purple' }}>{card.status}</p>
+            </div>
+          ))}
+        </div>
+
+        <div className="flex justify-center mt-6">
+          <button className="bg-gray-300 text-black px-4 py-2 rounded">Load More</button>
+        </div>
       </div>
     </div>
   );

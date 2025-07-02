@@ -1,73 +1,74 @@
-const CACHE_NAME = 'validation-master-cache-v2';
-const OFFLINE_URL = '/';
-
-self.addEventListener('install', (event) => {
-  event.waitUntil(
-    caches.open(CACHE_NAME).then((cache) => cache.addAll([OFFLINE_URL]))
-  );
+/* eslint-disable no-restricted-globals */
+self.addEventListener('install', () => {
   self.skipWaiting();
 });
 
-self.addEventListener('fetch', (event) => {
-  event.respondWith(
-    fetch(event.request).catch(() => caches.match(event.request))
-  );
+self.addEventListener('activate', () => {
+  clients.claim();
 });
 
+importScripts('https://cdn.jsdelivr.net/npm/localforage/dist/localforage.min.js');
+
 self.addEventListener('sync', (event) => {
-  if (event.tag === 'sync-history') {
-    event.waitUntil(syncPendingHistory());
+  if (event.tag === 'sync-submissions') {
+    event.waitUntil(syncData());
   }
 });
 
-async function syncPendingHistory() {
-  const db = await openDB('validation-master-db', 1);
-  const tx = db.transaction('history', 'readwrite');
-  const store = tx.objectStore('history');
-  const entries = await store.getAll();
+async function syncData() {
+  const localSubmissions = await localforage.getItem('offlineSubmissions') || [];
+  const stillPending = [];
 
-  const unsynced = entries.filter(entry => !entry.synced);
-
-  for (const entry of unsynced) {
+  for (const submission of localSubmissions) {
     try {
-      // Upload images
       const uploadedURLs = [];
-      for (let i = 0; i < entry.files.length; i++) {
-        const file = entry.files[i];
-        const filePath = `${entry.id}/pic-${i}`;
 
-        const res = await fetch(`https://uisclambrgfshwjuwwyw.supabase.co/storage/v1/object/public/images/${filePath}`, {
-          method: 'PUT',
-          body: file
-        });
-        if (!res.ok) throw new Error('Upload failed');
+      for (const file of submission.files || []) {
+        const fileName = `${Date.now()}-${file.name}`;
+        const res = await fetch(file);
+        const blob = await res.blob();
 
-        uploadedURLs.push(res.url);
+        const formData = new FormData();
+        formData.append('file', blob, fileName);
+
+        const uploadRes = await fetch(
+          `https://uisclambrgfshwjjuwvy.supabase.co/storage/v1/object/public/images/${fileName}`,
+          {
+            method: 'PUT',
+            headers: {
+              apikey: 'your_supabase_api_key',
+              Authorization: 'Bearer your_supabase_anon_key',
+            },
+            body: blob,
+          }
+        );
+
+        if (!uploadRes.ok) throw new Error('Upload failed');
+
+        uploadedURLs.push(`https://uisclambrgfshwjjuwvy.supabase.co/storage/v1/object/public/images/${fileName}`);
       }
 
-      // Insert record to Supabase table
-      await fetch('https://YOUR_FUNCTION_ENDPOINT/syncEntry', {
+      await fetch('https://uisclambrgfshwjjuwvy.supabase.co/rest/v1/history', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          apikey: 'your_supabase_api_key',
+          Authorization: 'Bearer your_supabase_anon_key',
+          'Content-Type': 'application/json',
+          Prefer: 'return=representation',
+        },
         body: JSON.stringify({
-          ...entry,
+          testcase: submission.testcase,
+          teststep: submission.teststep,
           pictures: uploadedURLs,
+          added_on: submission.added_on,
           synced: true,
         }),
       });
-
-      entry.synced = true;
-      await store.put(entry);
-      self.clients.matchAll().then(clients => {
-        clients.forEach(client => {
-          client.postMessage({ type: 'sync-success', id: entry.id });
-        });
-      });
-
     } catch (err) {
-      console.error('Sync failed:', err);
+      console.error('[SW] Sync failed:', err);
+      stillPending.push(submission);
     }
   }
 
-  await tx.done;
+  await localforage.setItem('offlineSubmissions', stillPending);
 }
