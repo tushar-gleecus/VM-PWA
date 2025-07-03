@@ -121,44 +121,49 @@ const FormScreen = () => {
 
   return (
     <div className="min-h-screen bg-blue-50 flex items-center justify-center px-4 py-6">
-      <div className="bg-white p-6 rounded-xl shadow-md w-full max-w-md">
-        <div className="flex justify-between items-center mb-2">
-          <img src="/logo.svg" alt="Logo" className="h-8 cursor-pointer" onClick={() => navigate('/')} />
-          <button className="text-sm text-blue-600 hover:underline" onClick={() => navigate('/history')}>
-            View History
-          </button>
-        </div>
+      <div className="bg-white p-6 rounded-xl shadow-md w-full max-w-md flex flex-col justify-between h-full min-h-[90vh]">
+        <div>
+          <div className="flex justify-between items-center mb-2">
+            <img src="/logo.svg" alt="Logo" className="h-8 cursor-pointer" onClick={() => navigate('/')} />
+            <button className="text-sm text-blue-600 hover:underline" onClick={() => navigate('/history')}>
+              View History
+            </button>
+          </div>
 
-        <h2 className="text-lg font-semibold text-center mb-4">
-          CloudMaster365 for Dynamics365 F&O
-        </h2>
+          <h2 className="text-lg font-semibold text-center mb-4">
+            CloudMaster365 for Dynamics365 F&O
+          </h2>
 
-        <label className="block text-sm font-medium">Test Case</label>
-        <select
-          value={testcase}
-          onChange={(e) => setTestcase(e.target.value)}
-          className="w-full p-2 border rounded mb-2"
-        >
-          {[testcase, ...testCaseOptions.filter((opt) => opt !== testcase)].map((option, idx) => (
-            <option key={idx} value={option}>{option}</option>
-          ))}
-        </select>
+          <label className="block text-sm font-medium">Test Case</label>
+          <select
+            value={testcase}
+            onChange={(e) => setTestcase(e.target.value)}
+            className="w-full p-2 border rounded mb-2"
+          >
+            {[testcase, ...testCaseOptions.filter((opt) => opt !== testcase)].map((option, idx) => (
+              <option key={idx} value={option}>{option}</option>
+            ))}
+          </select>
 
-        <label className="block text-sm font-medium">Test Step</label>
-        <div className="relative">
+          <label className="block text-sm font-medium">Test Step</label>
           <textarea
             value={teststep}
             onChange={(e) => setTeststep(e.target.value)}
-            className="w-full p-2 border rounded pr-10"
+            className="w-full p-2 border rounded"
+            rows={3}
           />
-          <button type="button" className="absolute right-2 top-2 flex items-center gap-1" onClick={startRecognition}>
-            <img src={micIcon} alt="Mic" className="w-5 h-5" />
-            <span className="text-xs text-gray-600">Voice Input</span>
-          </button>
-        </div>
+          <div className="flex justify-end mt-1 mb-4">
+            <button
+              type="button"
+              onClick={startRecognition}
+              className="flex items-center gap-1 text-gray-600 text-sm hover:text-black"
+            >
+              <img src={micIcon} alt="Mic" className="w-4 h-4" />
+              Voice Input
+            </button>
+          </div>
 
-        {/* Upload Pictures */}
-        <div className="mt-4">
+          {/* Upload Pictures */}
           <label className="block text-sm font-medium">Upload Pictures</label>
           <div className="flex flex-wrap gap-2 items-center mt-1">
             <button
@@ -198,49 +203,49 @@ const FormScreen = () => {
               ))}
             </div>
           )}
-        </div>
 
-        {/* Upload Videos */}
-        <div className="mt-4">
-          <label className="block text-sm font-medium">Upload Videos</label>
-          <div className="flex flex-wrap gap-2 items-center mt-1">
-            <button
-              className="flex items-center gap-1 bg-gray-200 px-3 py-1 rounded hover:bg-gray-300"
-              onClick={() => videoInputRef.current?.click()}
-            >
-              📁 <span className="text-sm">Choose from Gallery</span>
-            </button>
-            <button
-              className="flex items-center gap-1 bg-gray-200 px-3 py-1 rounded hover:bg-gray-300"
-              onClick={() => openCamera('video')}
-            >
-              <img src={videoIcon} alt="video" className="w-5 h-5" />
-              <span className="text-sm">Record Video</span>
-            </button>
-            <input
-              ref={videoInputRef}
-              type="file"
-              accept="video/*"
-              multiple
-              onChange={handleVideoChange}
-              className="hidden"
-            />
-          </div>
-          {videoFiles.length > 0 && (
-            <div className="flex flex-wrap gap-2 mt-2">
-              {videoFiles.map((file, index) => (
-                <div key={index} className="relative">
-                  <video src={URL.createObjectURL(file)} controls className="h-20 w-28 rounded" />
-                  <button
-                    onClick={() => setVideoFiles(videoFiles.filter((_, i) => i !== index))}
-                    className="absolute top-0 right-0 bg-red-500 text-white rounded-full w-5 h-5 text-xs"
-                  >
-                    ✕
-                  </button>
-                </div>
-              ))}
+          {/* Upload Videos */}
+          <div className="mt-4">
+            <label className="block text-sm font-medium">Upload Videos</label>
+            <div className="flex flex-wrap gap-2 items-center mt-1">
+              <button
+                className="flex items-center gap-1 bg-gray-200 px-3 py-1 rounded hover:bg-gray-300"
+                onClick={() => videoInputRef.current?.click()}
+              >
+                📁 <span className="text-sm">Choose from Gallery</span>
+              </button>
+              <button
+                className="flex items-center gap-1 bg-gray-200 px-3 py-1 rounded hover:bg-gray-300"
+                onClick={() => openCamera('video')}
+              >
+                <img src={videoIcon} alt="video" className="w-5 h-5" />
+                <span className="text-sm">Record Video</span>
+              </button>
+              <input
+                ref={videoInputRef}
+                type="file"
+                accept="video/*"
+                multiple
+                onChange={handleVideoChange}
+                className="hidden"
+              />
             </div>
-          )}
+            {videoFiles.length > 0 && (
+              <div className="flex flex-wrap gap-2 mt-2">
+                {videoFiles.map((file, index) => (
+                  <div key={index} className="relative">
+                    <video src={URL.createObjectURL(file)} controls className="h-20 w-28 rounded" />
+                    <button
+                      onClick={() => setVideoFiles(videoFiles.filter((_, i) => i !== index))}
+                      className="absolute top-0 right-0 bg-red-500 text-white rounded-full w-5 h-5 text-xs"
+                    >
+                      ✕
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
         </div>
 
         <button
