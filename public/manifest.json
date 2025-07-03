@@ -1,10 +1,10 @@
 {
   "name": "ValidationMaster",
   "short_name": "ValidationMaster",
-  "start_url": ".",
+  "start_url": "/",
   "display": "standalone",
   "background_color": "#ffffff",
-  "theme_color": "#ffffff",
+  "theme_color": "#2563eb",  
   "icons": [
     {
       "src": "/pwa-192x192.png",
