@@ -27,15 +27,29 @@ const FormScreen = () => {
     if (saved) setTestcase(saved);
   }, []);
 
-  const handleImageChange = (e) => setImageFiles([...e.target.files]);
-  const handleVideoChange = (e) => setVideoFiles([...e.target.files]);
+  const handleImageChange = (e) => {
+    const files = Array.from(e.target.files || []);
+    setImageFiles(prev => [...prev, ...files]);
+  };
+
+  const handleVideoChange = (e) => {
+    const files = Array.from(e.target.files || []);
+    setVideoFiles(prev => [...prev, ...files]);
+  };
 
   const openCamera = (type) => {
     const input = document.createElement('input');
     input.type = 'file';
     input.accept = type === 'image' ? 'image/*' : 'video/*';
     input.capture = 'environment';
-    input.onchange = type === 'image' ? handleImageChange : handleVideoChange;
+    input.onchange = (e) => {
+      const files = Array.from(e.target.files || []);
+      if (type === 'image') {
+        setImageFiles(prev => [...prev, ...files]);
+      } else {
+        setVideoFiles(prev => [...prev, ...files]);
+      }
+    };
     input.click();
   };
 
@@ -136,20 +150,52 @@ const FormScreen = () => {
           </button>
         </div>
 
+        {/* Upload Images */}
         <div className="mt-4">
           <label className="block text-sm font-medium">Upload Pictures</label>
           <div className="flex items-center gap-2">
             <input type="file" accept="image/*" multiple onChange={handleImageChange} />
             <button onClick={() => openCamera('image')}>📷</button>
           </div>
+          {imageFiles.length > 0 && (
+            <div className="flex flex-wrap gap-2 mt-2">
+              {imageFiles.map((file, index) => (
+                <div key={index} className="relative">
+                  <img src={URL.createObjectURL(file)} alt="preview" className="h-20 w-20 object-cover rounded" />
+                  <button
+                    onClick={() => setImageFiles(imageFiles.filter((_, i) => i !== index))}
+                    className="absolute top-0 right-0 bg-red-500 text-white rounded-full w-5 h-5 text-xs"
+                  >
+                    ✕
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
 
+        {/* Upload Videos */}
         <div className="mt-4">
           <label className="block text-sm font-medium">Upload Videos</label>
           <div className="flex items-center gap-2">
             <input type="file" accept="video/*" multiple onChange={handleVideoChange} />
             <button onClick={() => openCamera('video')}>🎥</button>
           </div>
+          {videoFiles.length > 0 && (
+            <div className="flex flex-wrap gap-2 mt-2">
+              {videoFiles.map((file, index) => (
+                <div key={index} className="relative">
+                  <video src={URL.createObjectURL(file)} controls className="h-20 w-28 rounded" />
+                  <button
+                    onClick={() => setVideoFiles(videoFiles.filter((_, i) => i !== index))}
+                    className="absolute top-0 right-0 bg-red-500 text-white rounded-full w-5 h-5 text-xs"
+                  >
+                    ✕
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
 
         <button
