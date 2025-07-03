@@ -22,9 +22,8 @@ const HistoryScreen = () => {
   };
 
   const getStatusClass = (status) => {
-    const greenStatuses = ['Approved', 'Ready for Test', 'Ready for Review', 'Tested', 'Verified'];
-    if (greenStatuses.includes(status)) return 'text-green-600';
-    if (status === 'Draft') return 'text-blue-600';
+    if (status === 'Synced') return 'text-green-600 font-semibold';
+    if (status === 'Pending') return 'text-orange-500 font-semibold';
     return 'text-gray-700';
   };
 
@@ -43,7 +42,9 @@ const HistoryScreen = () => {
           </button>
         </div>
 
-        <h2 className="text-xl font-bold mb-4 text-center">CloudMaster365 for Dynamics365 F&O</h2>
+        <h2 className="text-xl font-bold mb-4 text-center">
+          CloudMaster365 for Dynamics365 F&O
+        </h2>
 
         <div className="overflow-x-auto">
           <table className="min-w-full border">
