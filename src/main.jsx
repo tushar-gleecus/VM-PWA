@@ -23,7 +23,7 @@ if ('serviceWorker' in navigator) {
   });
 }
 
-// --- Sync Offline Submissions ---
+// --- Sync Pending Entries ---
 async function syncPendingEntries() {
   const entries = await getAllEntries();
   const pending = entries.filter((e) => e.status === 'Pending');
@@ -50,15 +50,11 @@ async function syncPendingEntries() {
         status: 'Synced',
       });
 
-      console.log(`✅ Synced entry #${entry.id}`);
+      // 🔄 Notify HistoryScreen to update without reload
+      window.dispatchEvent(new CustomEvent('sync-updated'));
     } catch (err) {
       console.error(`❌ Failed to sync entry #${entry.id}:`, err.message);
     }
-  }
-
-  if (pending.length > 0) {
-    alert(`✅ Synced ${pending.length} offline submission(s)`);
-    window.location.reload(); // 🔄 Auto-refresh History screen
   }
 }
 

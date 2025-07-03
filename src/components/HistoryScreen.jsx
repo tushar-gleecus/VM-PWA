@@ -11,6 +11,17 @@ const HistoryScreen = () => {
     loadEntries();
   }, []);
 
+  // 🔁 Refresh entries when sync-updated event is triggered
+  useEffect(() => {
+    const handleSyncUpdate = () => {
+      console.log('🔁 Sync update received – reloading entries...');
+      loadEntries();
+    };
+
+    window.addEventListener('sync-updated', handleSyncUpdate);
+    return () => window.removeEventListener('sync-updated', handleSyncUpdate);
+  }, []);
+
   const loadEntries = async () => {
     const data = await getAllEntries();
     setEntries(data.sort((a, b) => b.id - a.id));
