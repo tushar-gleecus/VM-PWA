@@ -21,12 +21,19 @@ const HistoryScreen = () => {
     return data.publicUrl;
   };
 
+  const getStatusClass = (status) => {
+    const greenStatuses = ['Approved', 'Ready for Test', 'Ready for Review', 'Tested', 'Verified'];
+    if (greenStatuses.includes(status)) return 'text-green-600';
+    if (status === 'Draft') return 'text-blue-600';
+    return 'text-gray-700';
+  };
+
   return (
     <div className="min-h-screen bg-blue-50 p-4">
       <div className="max-w-5xl mx-auto bg-white rounded-xl shadow-md p-6">
         <div className="flex justify-between items-center mb-4">
           <img
-            src="/logo.png"
+            src="logo.svg"
             alt="Logo"
             className="h-8 cursor-pointer"
             onClick={() => navigate('/')}
@@ -42,54 +49,76 @@ const HistoryScreen = () => {
           <table className="min-w-full border">
             <thead>
               <tr className="bg-blue-100">
-                <th className="p-2 border">Test Case</th>
-                <th className="p-2 border">Test Step</th>
-                <th className="p-2 border">Pictures</th>
-                <th className="p-2 border">Videos</th>
-                <th className="p-2 border">Added On</th>
-                <th className="p-2 border">Status</th>
+                <th className="p-3 border">Test Case</th>
+                <th className="p-3 border">Test Step</th>
+                <th className="p-3 border">Media</th>
+                <th className="p-3 border">Added On</th>
+                <th className="p-3 border">Status</th>
               </tr>
             </thead>
             <tbody>
-              {entries.map((entry) => (
-                <tr key={entry.id} className="text-center">
-                  <td className="p-2 border">{entry.testcase}</td>
-                  <td className="p-2 border">{entry.teststep}</td>
-                  <td className="p-2 border">
-                    {entry.imageFiles?.map((img, i) => (
-                      <img
-                        key={i}
-                        src={typeof img === 'string' ? getPublicUrl(img) : URL.createObjectURL(img)}
-                        alt="thumb"
-                        className="h-12 mx-auto"
-                      />
-                    ))}
-                  </td>
-                  <td className="p-2 border">
-                    {entry.videoFiles?.map((vid, i) => (
-                      <video
-                        key={i}
-                        src={typeof vid === 'string' ? getPublicUrl(vid) : URL.createObjectURL(vid)}
-                        controls
-                        className="h-12 mx-auto"
-                      />
-                    ))}
-                  </td>
-                  <td className="p-2 border">{new Date(entry.createdAt).toLocaleString()}</td>
-                  <td className="p-2 border">
-                    <span className={entry.status === 'Synced' ? 'text-green-600' : 'text-orange-500'}>
+              {entries.flatMap((entry) => {
+                const mediaList = [
+                  ...(entry.imageFiles || []).map((m) => ({ type: 'image', src: m })),
+                  ...(entry.videoFiles || []).map((m) => ({ type: 'video', src: m })),
+                ];
+
+                if (mediaList.length === 0) {
+                  return (
+                    <tr key={entry.id} className="text-center">
+                      <td className="p-2 border">{entry.testcase}</td>
+                      <td className="p-2 border">{entry.teststep}</td>
+                      <td className="p-2 border text-gray-500">No media</td>
+                      <td className="p-2 border">{new Date(entry.createdAt).toLocaleString()}</td>
+                      <td className={`p-2 border ${getStatusClass(entry.status)}`}>
+                        {entry.status}
+                      </td>
+                    </tr>
+                  );
+                }
+
+                return mediaList.map((media, idx) => (
+                  <tr key={`${entry.id}-${idx}`} className="text-center">
+                    <td className="p-2 border">{entry.testcase}</td>
+                    <td className="p-2 border">{entry.teststep}</td>
+                    <td className="p-2 border">
+                      {media.type === 'image' ? (
+                        <img
+                          src={typeof media.src === 'string' ? getPublicUrl(media.src) : URL.createObjectURL(media.src)}
+                          alt="preview"
+                          className="h-12 mx-auto"
+                        />
+                      ) : (
+                        <video
+                          src={typeof media.src === 'string' ? getPublicUrl(media.src) : URL.createObjectURL(media.src)}
+                          controls
+                          className="h-12 mx-auto"
+                        />
+                      )}
+                    </td>
+                    <td className="p-2 border">{new Date(entry.createdAt).toLocaleString()}</td>
+                    <td className={`p-2 border ${getStatusClass(entry.status)}`}>
                       {entry.status}
-                    </span>
-                  </td>
-                </tr>
-              ))}
+                    </td>
+                  </tr>
+                ));
+              })}
+
               {entries.length === 0 && (
                 <tr>
-                  <td colSpan="6" className="text-center p-4 text-gray-500">No submissions found.</td>
+                  <td colSpan="5" className="text-center p-4 text-gray-500">
+                    No submissions found.
+                  </td>
                 </tr>
               )}
             </tbody>
           </table>
+        </div>
+
+        <div className="flex justify-center mt-6">
+          <button className="bg-black text-white font-semibold px-5 py-2 rounded border-4 border-blue-500">
+            Load More
+          </button>
         </div>
       </div>
     </div>

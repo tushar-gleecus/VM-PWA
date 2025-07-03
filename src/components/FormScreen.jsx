@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { useLocation, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { supabase } from '../supabaseClient';
 import { addLocalEntry } from '../localStore';
 
@@ -16,14 +16,16 @@ const testCaseOptions = [
 
 const FormScreen = () => {
   const navigate = useNavigate();
-  const location = useLocation();
-  const selectedTestCase = location.state?.testcase || '';
-
-  const [testcase, setTestcase] = useState(selectedTestCase);
+  const [testcase, setTestcase] = useState('');
   const [teststep, setTeststep] = useState('');
   const [imageFiles, setImageFiles] = useState([]);
   const [videoFiles, setVideoFiles] = useState([]);
   const [recognition, setRecognition] = useState(null);
+
+  useEffect(() => {
+    const saved = localStorage.getItem('selectedCardTitle');
+    if (saved) setTestcase(saved);
+  }, []);
 
   const handleImageChange = (e) => setImageFiles([...e.target.files]);
   const handleVideoChange = (e) => setVideoFiles([...e.target.files]);
@@ -97,17 +99,11 @@ const FormScreen = () => {
     setRecognition(recog);
   };
 
-  useEffect(() => {
-    if (selectedTestCase) {
-      setTestcase(selectedTestCase);
-    }
-  }, [selectedTestCase]);
-
   return (
-    <div className="min-h-screen flex items-center justify-center bg-blue-50">
+    <div className="min-h-screen bg-blue-50 flex items-center justify-center px-4 py-6">
       <div className="bg-white p-6 rounded-xl shadow-md w-full max-w-md">
         <div className="flex justify-between items-center mb-2">
-          <img src="/logo.png" alt="Logo" className="h-8" onClick={() => navigate('/')} style={{ cursor: 'pointer' }} />
+          <img src="/logo.svg" alt="Logo" className="h-8 cursor-pointer" onClick={() => navigate('/')} />
           <button className="text-sm text-blue-600 hover:underline" onClick={() => navigate('/history')}>
             View History
           </button>
@@ -144,9 +140,7 @@ const FormScreen = () => {
           <label className="block text-sm font-medium">Upload Pictures</label>
           <div className="flex items-center gap-2">
             <input type="file" accept="image/*" multiple onChange={handleImageChange} />
-            <button onClick={() => openCamera('image')}>
-              📷
-            </button>
+            <button onClick={() => openCamera('image')}>📷</button>
           </div>
         </div>
 
@@ -154,9 +148,7 @@ const FormScreen = () => {
           <label className="block text-sm font-medium">Upload Videos</label>
           <div className="flex items-center gap-2">
             <input type="file" accept="video/*" multiple onChange={handleVideoChange} />
-            <button onClick={() => openCamera('video')}>
-              🎥
-            </button>
+            <button onClick={() => openCamera('video')}>🎥</button>
           </div>
         </div>
 

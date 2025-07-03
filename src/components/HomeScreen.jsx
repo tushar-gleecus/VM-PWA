@@ -35,27 +35,36 @@ const HomeScreen = () => {
     navigate('/form');
   };
 
-return (
+  const getStatusColor = (status) => {
+    if (['Approved', 'Ready for Test', 'Ready for Review', 'Tested', 'Verified'].includes(status)) return 'text-green-600';
+    if (status === 'Draft') return 'text-blue-600';
+    return 'text-gray-700';
+  };
+
+  return (
     <div className="min-h-screen bg-blue-50 p-4">
       <div className="max-w-5xl mx-auto">
         <div className="flex justify-between items-center mb-4">
           <img src={logo} alt="Logo" className="h-10 cursor-pointer" onClick={() => navigate('/')} />
         </div>
+
         <h2 className="text-lg font-semibold text-center mb-2">Welcome back, Dan</h2>
+
         <div className="flex flex-col sm:flex-row gap-2 justify-center items-center mb-4">
           <select
             value={selectedProject}
             onChange={(e) => setSelectedProject(e.target.value)}
-            className="border p-2 rounded w-full sm:w-80"
+            className="border p-3 rounded w-full sm:w-80 appearance-none bg-white"
           >
             {projectOptions.map((project) => (
               <option key={project} value={project}>{project}</option>
             ))}
           </select>
+
           <select
             value={selectedCategory}
             onChange={(e) => setSelectedCategory(e.target.value)}
-            className="border p-2 rounded w-full sm:w-60"
+            className="border p-3 rounded w-full sm:w-60 appearance-none bg-white"
           >
             {testCaseOptions.map((tc) => (
               <option key={tc} value={tc}>{tc}</option>
@@ -72,13 +81,15 @@ return (
             >
               <p className="font-semibold">Test Case #{card.id}</p>
               <p>{card.title}</p>
-              <p className="text-sm mt-1" style={{ color: card.status.includes('Ready') ? 'blue' : card.status === 'Approved' ? 'green' : 'purple' }}>{card.status}</p>
+              <p className={`text-sm mt-1 ${getStatusColor(card.status)}`}>{card.status}</p>
             </div>
           ))}
         </div>
 
         <div className="flex justify-center mt-6">
-          <button className="bg-gray-300 text-black px-4 py-2 rounded">Load More</button>
+          <button className="bg-black text-white font-semibold px-5 py-2 rounded border-4 border-blue-500">
+            Load More
+          </button>
         </div>
       </div>
     </div>
