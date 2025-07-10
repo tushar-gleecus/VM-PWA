@@ -43,7 +43,7 @@ const HistoryScreen = () => {
       <div className="max-w-5xl mx-auto bg-white rounded-xl shadow-md p-6">
         <div className="flex justify-between items-center mb-4">
           <img
-            src="logo.svg"
+            src="new_logo.png"
             alt="Logo"
             className="h-8 cursor-pointer"
             onClick={() => navigate('/')}
