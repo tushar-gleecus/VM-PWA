@@ -124,7 +124,7 @@ const FormScreen = () => {
       <div className="bg-white p-6 rounded-xl shadow-md w-full max-w-md flex flex-col justify-between h-full min-h-[90vh]">
         <div>
           <div className="flex justify-between items-center mb-2">
-            <img src="/logo.svg" alt="Logo" className="h-8 cursor-pointer" onClick={() => navigate('/')} />
+            <img src="/new_logo.png" alt="Logo" className="h-8 cursor-pointer" onClick={() => navigate('/')} />
             <button className="text-sm text-blue-600 hover:underline" onClick={() => navigate('/history')}>
               View History
             </button>
