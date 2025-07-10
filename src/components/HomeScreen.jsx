@@ -45,7 +45,7 @@ const HomeScreen = () => {
     <div className="min-h-screen bg-blue-50 p-4">
       <div className="max-w-5xl mx-auto">
         <div className="flex justify-between items-center mb-4">
-          <img src={logo} alt="Logo" className="h-10 cursor-pointer" onClick={() => navigate('/')} />
+          <img src={logo} alt="Logo" className="h-16 w-auto cursor-pointer" onClick={() => navigate('/')} />
         </div>
 
         <h2 className="text-lg font-semibold text-center mb-2">Welcome back, Dan</h2>
